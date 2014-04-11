@@ -7,7 +7,7 @@
 #include "jsonfile.h"
 #include "gpu.h"
 
-//Using namespace std;
+//using namespace std;
 
 int main(int argc, char *argv[]){
 	/*
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]){
     
     try{
         node cluster;
-
+//printf("Termina?\n");
         //Se escribe la informacion en formato json
         int id;
         //Todos los nodos revisan que hilos le corresponde
@@ -50,6 +50,7 @@ int main(int argc, char *argv[]){
 
 
      try {
+//printf("Finalize\n");
          MPI::Finalize();
      } catch (MPI::Exception e) {
          cout << "MPI ERROR(F): " << e.Get_error_code() << " - " << e.Get_error_string() << std::endl;

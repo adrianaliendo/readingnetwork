@@ -47,7 +47,7 @@ node::node() {
                 for(int j=1;j<numtask;j++){
 		    if(auxidnodes[j]!=-1){
 		        MPI::COMM_WORLD.Recv((void *)buffer, tam, MPI::PACKED, j, TAG, stat);
-		        gpu gpuaux = new gpu((void *)buffer, tam);//Este constructor se encarga de desempaquetar la información 
+		        gpu gpuaux((void *)buffer, tam);//Este constructor se encarga de desempaquetar la información 
  			    			      		  //almacenada en buffer y lo guarda en el objeto gpuaux
                         //Despues que desempaca todo, debe almacenar el objeto recibido en
                         //uno de los elementos del gpusinfo 
@@ -56,7 +56,7 @@ node::node() {
 		    }
                 }            
             } else if(auxidnodes[idnode]!=-1) {//Solo los nodos que son unicos, envían datos al nodo principal
-                //El resto de los nodos deben enviar la informacion que tienen a la mano
+                //debe enviar la informacion que tienen a la mano
 	        gpuinfo.pack((void *)buffer,tam);
                 MPI::COMM_WORLD.Send((void *)buffer, tam, MPI::PACKED, 0, TAG);
             }
@@ -70,7 +70,6 @@ node::node() {
 	    setValueatr();
 	    setNameatr();
 	}
-
 }
 
 void node::setNumnode(){
@@ -123,7 +122,7 @@ void node::setNamenode(){
                     //Si es verdadero, entonces es un nuevo procesador
                     names[numprocs]=namesaux[i];
                     //Y en auxidnode guardo el numero del procesador al que pertenece
-                    auxidnodes[i]=numprocs;
+                    auxidnodes[i]=i;
                     numprocs++;
                 } else {
                     //Para saber que esta vacio
@@ -177,6 +176,7 @@ void node::setNatr(){
 }
 
 void node::setValueatr(){
+    int flag=0;
     valueatr = new string[natr];
     
     stringstream auxss;
@@ -184,43 +184,54 @@ void node::setValueatr(){
     auxss << numtask << ",";  
     valueatr[0]=auxss.str();
     auxss.str(string());
-      
+
     auxss << numprocs << ",";  
     valueatr[1]=auxss.str();
     auxss.str(string());
 
     auxss << "[";
-    for (int i=0; i<numprocs;i++){
-        auxss << auxidnodes[i];
-        if(i!=numprocs-1)
-            auxss << ",";  
+    for (int i=0; i<numtask;i++){
+        if(auxidnodes[i]>=0){
+		flag++;
+		auxss << auxidnodes[i];
+		if(flag!=numprocs)
+		    auxss << ",";  
+	}
     } 
     valueatr[2]=auxss.str().append("],");
     auxss.str(string());
 
+    flag=0;
     auxss << "[";
-    for (int i=0; i<numprocs;i++){
-        auxss << threads[auxidnodes[i]];
-        if(i!=numprocs-1)
-            auxss << ",";  
+    for (int i=0; i<numtask;i++){
+        if(auxidnodes[i]!=-1){
+		flag++;
+	        auxss << threads[auxidnodes[i]];
+        	if(flag!=numprocs)
+        	    auxss << ",";  
+	}
     } 
     valueatr[3]=auxss.str().append("],");
     auxss.str(string());
 
+    flag=0;
     auxss << "[";
-    for (int i=0; i<numprocs;i++){
-        auxss << "{\n";
-        for (int j=0; j<gpusinfo[auxidnodes[i]].getNatr();j++){    
-            auxss << "\"";
-            auxss << gpusinfo[auxidnodes[i]].getNameatr(j) << "\":" << gpusinfo[auxidnodes[i]].getValueatr(j); 
-            auxss << "\n";            
-        }         
-        auxss << "}";
-        if(i!=numprocs-1)
-            auxss << ",";  
-        
+    for (int i=0; i<numtask;i++){
+        if(auxidnodes[i]!=-1){
+		flag++;
+		auxss << "{\n";
+		for (int j=0; j<gpusinfo[auxidnodes[i]].getNatr();j++){    
+		    auxss << "\"";
+		    auxss << gpusinfo[auxidnodes[i]].getNameatr(j) << "\":" << gpusinfo[auxidnodes[i]].getValueatr(j); 
+		    auxss << "\n";            
+		}         
+		auxss << "}";
+		if(flag!=numprocs)
+		    auxss << ",";  
+        }
     }
     valueatr[4]=auxss.str().append("]");    
+
 }
 
 void node::setNameatr(){

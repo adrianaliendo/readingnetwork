@@ -1,9 +1,0 @@
-{
-"numtask":1,
-"numprocs":1,
-"idnodes":[0],
-"threads":[4],
-"gpuinfo":[{
-"present":0
-}]
-}

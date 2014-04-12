@@ -1,9 +1,0 @@
-PROGS=main
-CC=mpic++
-
-.PHONY: all clean
-all: $(PROGS)
-	$(CC) -o $@ $<
-
-clean:
-	rm -fv $(PROGS)
